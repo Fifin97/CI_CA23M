@@ -7,6 +7,11 @@ class auth extends CI_Controller{
         parent::__construct();
         $this->load->model('user_model');
     }
+    public function login(){
+        // $this->load->view('templates/header');
+        $this->load->view('auth/login');
+        // $this->load->view('templates/footer');
+    }
 
     public function register(){
         $this->load->view('templates/header');
@@ -36,8 +41,43 @@ class auth extends CI_Controller{
                 redirect('auth/login');
             }else{
                     $this->session->set_flashdata('error','Pendaftaran Gagal Coba Lagi');
-                    redirect('auth/register');
+                    redirect('auth/register');              
             }
         }
+    }
+    public function process_login() {
+        $username = $this->input->post('username');
+        $password = $this->input->post('password');
+    
+        $user = $this->User_model->check_user($username, $password);
+        if($user) {
+            $this->session->set_userdata([
+            'user_id' => $user->id,
+            'username' => $user->username,
+            'role' => $user->role,
+            'logged_in' => TRUE
+            ]);
+    
+            $this->redirect_by_role($user->role);
+        } else {
+            $this->session->set_flashdata('error', 'Username atau Password salah');
+            redirect('auth/login');
+        }
+    }
+    public function redirect_by_role($role); {
+        switch ($role)  {
+            case 'admin':
+                redirect('dashboard');
+                break;
+            case 'user':
+                redirect('dashboard_user');
+                break;
+            default :
+                redirect('auth/login');
+        }
+    }
+    public function logout() {
+        $this->session->sess_destroy();
+        redirect('auth/login');
     }
 }
